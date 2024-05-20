@@ -31,7 +31,43 @@ graph LR
   blog-->user[users]-..->username
   user-..->password
   ```
+##### 代码说明
+登陆功能
+```js
+app.get('/', async (req, res) => {
+  res.render('checkin')
+})
 
+app.post('/checkin', async (req, res) => {  
+  try {  
+    const { username, password } = req.body;  
+
+    // 在数据库中查找用户  
+    const user = await User.findOne({ username });  
+  
+    // 如果没有找到用户，返回错误  
+    if (!user) {
+        alert("用户不存在")
+
+      return res.status(401).json({ error: 'Invalid credentials' });  
+        window.location.href="/"
+    }  
+  
+    // 如果密码验证失败，也返回错误  
+    if (!(password==user.password)) {
+      return res.status(401).json({ error: 'Invalid credentials' });  
+    }  
+  
+    // 如果用户和密码都正确，显示相应的博客界面   
+    const all = await yzn.find({ author: user._id }).sort({ createdAt: 'desc' }); 
+    res.render('all',{yzns:all , userid:user._id})
+  } catch (error) {  
+    console.error('Error:', error);  
+    res.status(500).json({ error: 'Internal server error' });  
+  }  
+});
+```
+进入网站后，显示登陆界面，通过表单提交用户输入的用户名与密码，向后端发送一个post请求。在后端将提交的数据与数据库中的用户信息进行比较，登陆成功后，渲染该用户的个人博客界面。
 ## 实验结果
 成功在云计算环境下开发了博客系统，并实现了用户注册、登录、文章发布等基本功能。
 
