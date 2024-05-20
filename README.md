@@ -67,7 +67,82 @@ app.post('/checkin', async (req, res) => {
   }  
 });
 ```
-进入网站后，显示登陆界面，通过表单提交用户输入的用户名与密码，向后端发送一个post请求。在后端将提交的数据与数据库中的用户信息进行比较，登陆成功后，渲染该用户的个人博客界面。
+进入网站后，显示登陆界面，通过表单提交用户输入的用户名与密码，向后端发送一个post请求。在后端将提交的数据与数据库中的用户信息进行比较，登陆成功后，通过find函数筛选出author等于该用户id的博客，渲染该用户的个人博客界面。  
+
+添加博客与用户注册
+```js
+app.get('/new/:userid', (req, res) => {
+  res.render('new',{user_id:req.params.userid});
+})
+
+app.post('/new', async (req,res) => {
+    const one = new yzn({ title: req.body.title, description: req.body.description,author: req.body.user_id,markdown:req.body.markdown });
+    await one.save();
+    res.render('display', {yzn : one})
+})
+
+//注册界面
+app.get('/register', async (req, res) => {
+  res.render('register')
+})
+
+//注册后的后端处理
+app.post('/register', async (req, res) => {  
+    const { username, password } = req.body;  
+    // 检查用户名是否已存在
+    const existingUser = await User.findOne({ username });  
+    if (existingUser) {  
+        return res.status(400).send('Username already exists');  
+    }  
+    const one = new User({ username: username, password: password });  
+    try {  
+        await one.save();  
+        res.redirect('/'); // 注册成功，重定向到主页  
+    } catch (error) {  
+        console.error('Error saving user:', error);  
+        res.status(500).send('Internal Server Error'); // 保存用户时出错，发送 500 错误  
+    }  
+});
+```
+点击博客系统首页的new按钮后，向server.js发送一个指向'/new/:userid'的get请求，然后通过表单提交新博客的数据，在后端接收到提交的数据后，将其存储在数据库中，再渲染display文件展示新增加的博客。在此过程中，须注意的是通过URL与渲染的方式传递了用户的id给博客的author，以实现在展示博客系统首页时找到与用户对应的博客内容。  注册功能与添加博客类似，只是新增的数据库模型不同。
+
+  修改与删除功能
+  ```js
+  app.get('/edit/:id', async (req, res) => {
+    const one = await yzn.findOne({ _id: req.params.id });
+    res.render('edit', {yzn: one })
+})
+
+app.put('/:id', async (req, res) => {
+    let data = {}
+    data.title = req.body.title
+    data.description = req.body.description
+    data.markdown = req.body.markdown
+    data.userid = req.body.user_id
+
+    const one = await yzn.findOne({ _id: req.params.id });
+    if (one != null) {
+        one.title = data.title;
+        one.description = data.description;
+        one.markdown = data.markdown;
+        await one.save();       
+    }  
+    res.redirect(`/readmore/${data.userid}/${req.params.id}`)
+})
+
+//删除博客
+app.delete('/:userid/:id', async (req, res) => {
+  userid=req.params.userid
+  await yzn.deleteMany({ _id: req.params.id });
+  const redirectUrl = `/Blog/${userid}`;
+  res.redirect(redirectUrl);
+})
+
+```
+在点击修改按钮后，向后端发送get请求，同时通过URL将要修改的博客id传递给后端，在接收到get请求后渲染修改页面，将修改后的博客内容通过表单提交给后端，同时同样通过URL将要修改的博客id传递给后端，在接收到post请求后，利用findone函数与传递的博客id找到要修改的博客，将其中的数据改为表单提交的数据，即实现了修改功能。删除功能与之类似，但省去了通过表单提交数据的部分吗，在找到要删除的博客后直接用deleteMany函数删除该博客。  
+
+  
+  
 ## 实验结果
 成功在云计算环境下开发了博客系统，并实现了用户注册、登录、文章发布等基本功能。
 
