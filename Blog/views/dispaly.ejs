@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  </head>
+<body>
+<div class="container">
+  <h1 class="mb-1"><%= yzn.title %></h1>
+  <div class="card-subtitle text-muted mb-2">
+    <%= yzn.createdAt.toLocaleDateString() %>
+  </div>
+  <a href="/Blog/<%= yzn.author%>" class="btn btn-secondary">All articles</a>
+  <a href="edit/<%= yzn._id%>" class="btn btn-info">Edit</a>
+  <div>
+      <p><%- yzn.html%></p>
+  </div>
+</div>
+</body>
+</html>
