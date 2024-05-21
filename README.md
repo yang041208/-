@@ -107,7 +107,7 @@ app.post('/register', async (req, res) => {
 点击博客系统首页的new按钮后，向server.js发送一个指向'/new/:userid'的get请求，然后通过表单提交新博客的数据，在后端接收到提交的数据后，将其存储在数据库中，再渲染display文件展示新增加的博客。在此过程中，须注意的是通过URL与渲染的方式传递了用户的id给博客的author，以实现在展示博客系统首页时找到与用户对应的博客内容。  注册功能与添加博客类似，只是新增的数据库模型不同。
 
   修改与删除功能
-  ```js
+ ```js
   app.get('/edit/:id', async (req, res) => {
     const one = await yzn.findOne({ _id: req.params.id });
     res.render('edit', {yzn: one })
@@ -141,6 +141,39 @@ app.delete('/:userid/:id', async (req, res) => {
 ```
 在点击修改按钮后，向后端发送get请求，同时通过URL将要修改的博客id传递给后端，在接收到get请求后渲染修改页面，将修改后的博客内容通过表单提交给后端，同时同样通过URL将要修改的博客id传递给后端，在接收到post请求后，利用findone函数与传递的博客id找到要修改的博客，将其中的数据改为表单提交的数据，即实现了修改功能。删除功能与之类似，但省去了通过表单提交数据的部分吗，在找到要删除的博客后直接用deleteMany函数删除该博客。  
 
+  readmore功能
+  ```js
+    app.get('/readmore/:userid/:id', async (req, res) => {
+        const userid = req.params.userid;  
+        const article = await yzn.findOne({ _id: req.params.id });
+    res.render('readmore', { article: article, userid: userid });  
+})
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Blog</title>
+</head>
+
+<body>
+<div class="container">
+  <h1 class="mb-1"><%= article.title %></h1>
+  <div class="card-subtitle text-muted mb-2">
+    <%= article.createdAt.toLocaleDateString() %>
+  </div>
+    <a href="/Blog/<%= userid %>" class="btn btn-secondary">All Articles</a>
+    <a href="/edit/<%= article._id %>" class="btn btn-info">Edit</a>
+    <div>
+      <%- article.html%>
+  </div>
+  </div>
+</body>
+</html>
+```
+在首页点击readmore按钮后，向后端发送一个get请求，并通过URL传递用户与博客的id，渲染readmore界面，通过博客id找到要展示详情的博客，然后显示该博客中的相关数据。给这个页面添加了all article与edit按钮以返回博客系统首页或编辑该博客。  
   
   
 ## 实验结果
